@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+
+    <title>Zach Gallegos - Fixing the "Impeach This" Map</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend&display=swap" rel="stylesheet">
+
+    <script src="libraries/d3.v5.min.js"></script>
+    <script src="libraries/topojson.v3.min.js"></script>
+    <script src="libraries/geometric.min.js"></script>
+
+    <!-- story css -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body id="page-top">
+    <div class="narration-container">
+      <div class="narration">
+        <p>
+          One of the troubles with effectively communicating election data is
+          that many of the most readily obvious graphical approaches lead to
+          visual distortion that you have to be
+          <em>really motivated</em> if you're going to get rid of it, and when
+          this distortion just happens to work in the favor of your particular
+          political tribe, you're likely not exactly itching to do the extra
+          work of fixing it.
+        </p>
+        <p>
+          That's how you end of with several different visualizations that
+          <a
+            target="_blank"
+            href="https://www.washingtonpost.com/news/politics/wp/2018/07/30/presenting-the-least-misleading-map-of-the-2016-election/"
+            >all purport to be showing you the same data</a
+          >
+          that somehow manage to lead you to wildly different conclusions.
+        </p>
+        <p>
+          Take, for example, the infamous "impeach this" map of the 2016
+          presidential election:
+        </p>
+      </div>
+      <div class="svg-container">
+        <svg id="svgChloro" class="svg-content"></svg>
+      </div>
+      <div class="narration">
+        <p>
+          This version (a "chloropleth") simply colors counties by their winner,
+          and one like it was
+          <a
+            target="_blank"
+            href="https://twitter.com/realDonaldTrump/status/1178989254309011456"
+            >retweeted by Trump</a
+          >
+          in an apparent argument that he could not be impeached based on his
+          overwhelming popular support. Twitter, as Twitter does, subsequently
+          held a dunk contest on him demonstrating why the visualization was
+          poor.
+        </p>
+        <p>
+          But why exactly is it poor? Let's look at Nevada, for example. Clinton
+          carried Nevada, 539,260 votes to 512,058.
+        </p>
+      </div>
+      <div class="svg-container">
+        <svg id="svgNevada" class="svg-content"></svg>
+      </div>
+      <div class="narration">
+        <p>
+          Even though Clinton won the state, Trump won 15 of the 17 individual
+          counties, so the state is visually majority red. Naturally, this
+          representation leads your eye to believe the state went overwhelmingly
+          Republican, especially when the state is lost in the U.S. as a whole.
+        </p>
+        <p>
+          The trouble is that the two counties Clinton won happen to be the two
+          counties where the vast majority of people in Nevada live. Clark
+          County (home to Las Vegas) has
+          <a
+            target="_blank"
+            href="https://en.wikipedia.org/wiki/2016_United_States_presidential_election_in_Nevada#By_county"
+            >over twice the votes</a
+          >
+          of the rest of the state combined. The other county she won was
+          Washoe, whose county seat is Reno.
+        </p>
+        <p>
+          We can try to solve this by using circles placed at county centers and
+          scaling them to the number of votes won:
+        </p>
+      </div>
+      <div class="svg-container">
+        <svg id="svgNevadaCircles" class="svg-content"></svg>
+      </div>
+      <div class="narration">
+        <p>
+          ...but this still has the unappealing property that only the winner's
+          votes are shown on the map. For example, 81% of Trump's votes came
+          from Clark and Washoe counties, and those votes aren't shown at all.
+          He looks like he lost in a landslide when in fact he only lost by
+          about 2.5% of the vote.
+        </p>
+        <p>
+          Somehow, just by changing the style, we've managed to take the same
+          data and steer it to the polar opposite conclusion.
+        </p>
+        <p>
+          This is the worst offense of winner-take-all style maps: in visually
+          removing the loser completely, they falsely display areas as being
+          more one-sided than they really are. They don't accurately depict the
+          reality that most places have many people voting both ways.
+        </p>
+        <p>
+          Over time, these sorts of representations help steer society towards
+          beliefs that some places are "nothing but" one particular party, which
+          is frequently not true in reality.
+        </p>
+        <p>
+          People (and by extension, places) are nuanced, so we need an
+          visualization that reflects that. One of the best visualizations of
+          the 2016 election is this one by xkcd comic author Randall Munroe:
+        </p>
+      </div>
+      <a target="blank" href="https://xkcd.com/1939/">
+        <img
+          class="image"
+          height="600"
+          width="960"
+          src="https://imgs.xkcd.com/comics/2016_election_map_2x.png"
+        />
+      </a>
+      <div class="narration">
+        <p>
+          Why is it great? It does the best job of showing where the masses of
+          votes are while simultaneously communicating that entire states did
+          not, in fact, vote completely in favor of any single candidate. It
+          also avoids allocating color (which, to your eye, says "votes") to
+          places where there are no people.
+        </p>
+        <p>
+          But this representation comes at a cost: this map is hard to make. In
+          particular, choosing where the markers should be placed is difficult.
+          In Munroe's map, each marker accounts for 250,000 votes; in some
+          states, a candidate might not have that many in the entire state. That
+          means the votes for some markers (perhaps even <em>most</em> markers)
+          must be coming from counties that are not necessarily close to it on
+          the map.
+        </p>
+        <p>
+          Let's try to figure out how to make one like Munroe's. I don't know
+          the method he used for his, but for mine, I concocted the following
+          "algorithm" (a generous word, indeed):
+        </p>
+        <ul style="text-align: left;">
+          <li>Choose a number of votes per marker on the map.</li>
+          <li>
+            Make a first pass over all counties in the state. For any counties
+            with enough votes on their own for at least one marker, place the
+            appropriate number of markers at the county center.
+          </li>
+          <li>
+            For the remaining votes, traverse the counties adding their votes
+            together. When traversing, we'll move "greedily", choosing the
+            neighbor county that has the most votes available to try to form a
+            marker as soon as possible. Once enough votes have been accumulated
+            for a marker, draw it at the center of the
+            <strong>merged</strong> shape of the counties from which the votes
+            are coming from.
+          </li>
+        </ul>
+        <p>
+          Here's what the result of this process looks like for Nevada. The
+          highlighted counties show which counties each marker is coming from
+          when it's placed. I chose markers of 10,000 votes each.
+        </p>
+      </div>
+      <div class="svg-container">
+        <svg id="svgNevadaMarkersAnimated" class="svg-content"></svg>
+      </div>
+      <div class="narration">
+        <p>
+          As you can see, there's a trade-off between having markers that are
+          representative of the location of their voters and accounting for as
+          many votes in the state as possible. Some markers end up representing
+          votes from counties that form a strange shape with one another, are
+          far from the marker, or both. We have to choose between that and
+          leaving votes unshown.
+        </p>
+        <p>
+          In any case, this is a much better representation of Nevada's results.
+          Visually, it's hard to even tell who won, as it should be when the
+          margin was so small. We get the correct impression that Nevada was a
+          mixed bag.
+        </p>
+        <p>
+          Here's the results of the same method applied to the whole US. On this
+          one, each marker represents 100,000 votes.
+        </p>
+      </div>
+      <div class="svg-container">
+        <svg id="svgUSMarkers" class="svg-content"></svg>
+      </div>
+      <div class="narration">
+        <p>
+          ...and after about a billion times the code and elbow grease it took
+          to make a minimum-effort chloropleth, we have a much better
+          representation of what actually happened in 2016. Suddenly, many
+          states looks much more heterogeneous than common opinion would have
+          you believe.
+        </p>
+        <p>
+          Thanks for reading! You can view the full code on
+          <a
+            target="_blank"
+            href="https://github.com/zpgallegos/zgallegos/tree/master/election-2016-map"
+            >GitHub</a
+          >.
+        </p>
+      </div>
+    </div>
+
+    <div class="tooltip"></div>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

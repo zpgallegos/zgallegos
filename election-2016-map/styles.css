@@ -1,0 +1,92 @@
+.narration-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.narration {
+  width: 50%;
+  margin: 2em auto;
+  font-family: Lexend, sans-serif;
+}
+
+.narration-list {
+  text-align: left;
+}
+
+.image {
+  max-width: 100%;
+  height: auto;
+}
+
+.svg-container {
+  display: inline-block;
+  position: relative;
+  width: 80%;
+  padding-bottom: 50%;
+  vertical-align: top;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.svg-content {
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.counties {
+  fill: none;
+  stroke: #8d8d8d;
+  stroke-width: 0.1px;
+  pointer-events: fill;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.states {
+  fill: none;
+  stroke: black;
+  stroke-width: .25px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tooltip {
+  position: absolute;
+  width: auto;
+  height: auto;
+  pointer-events: none;
+  background-color: white;
+  border: 1px solid black;
+  padding: 10px;
+  border-radius: 3%;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+}
+
+circle {
+  pointer-events: none;
+}
+
+.marker {
+  stroke: black;
+  stroke-width: 0.1px;
+}
+
+.highlighted-dem {
+  stroke-width: 1;
+  stroke: #2196f3;
+}
+
+.highlighted-rep {
+  stroke-width: 1;
+  stroke: #d32f2f;
+}
+
+.legend-box {
+  fill: none;
+  stroke: black;
+  stroke-width: 0.25;
+}
